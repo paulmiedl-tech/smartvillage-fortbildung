@@ -8,6 +8,7 @@ import type { UIMessage } from "ai";
 
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
+import { normalizeProviderUrl } from "@/lib/providers";
 
 interface ChatMessageProps {
   message: UIMessage;
@@ -22,10 +23,10 @@ export function ChatMessage({ message, isStreaming = false }: ChatMessageProps) 
     .map((part) => part.text)
     .join("");
 
-  const sources = message.parts.filter(
-    (part): part is Extract<UIMessage["parts"][number], { type: "source-url" }> =>
-      part.type === "source-url",
-  );
+  // Grounding sources intentionally ignored: we derive all user-facing
+  // links from markdown links inside the assistant text, normalized via
+  // the provider allowlist in lib/providers.ts. Raw Vertex redirect URLs
+  // from source-url parts would leak ugly redirect hosts.
 
   return (
     <motion.div
@@ -64,39 +65,11 @@ export function ChatMessage({ message, isStreaming = false }: ChatMessageProps) 
             {isStreaming && textContent.length > 0 && (
               <span className="ml-0.5 inline-block h-[1.1em] w-[2px] -translate-y-[-2px] animate-pulse bg-[color:var(--color-accent)] align-middle" aria-hidden="true" />
             )}
-            {sources.length > 0 && (
-              <div className="mt-4 border-t border-[color:var(--color-border)] pt-3">
-                <p className="text-xs font-medium text-[color:var(--color-muted-foreground)] mb-1.5">Quellen</p>
-                <ul className="flex flex-wrap gap-1.5">
-                  {sources.map((src, i) => (
-                    <li key={src.sourceId ?? i}>
-                      <a
-                        href={src.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-muted)] px-2.5 py-0.5 text-xs text-[color:var(--color-muted-foreground)] transition-colors hover:bg-[color:var(--color-lavender)] hover:text-[color:var(--color-primary)]"
-                      >
-                        {src.title ?? truncateHost(src.url)}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
         )}
       </div>
     </motion.div>
   );
-}
-
-function truncateHost(url: string) {
-  try {
-    const u = new URL(url);
-    return u.hostname.replace(/^www\./, "");
-  } catch {
-    return url;
-  }
 }
 
 const markdownComponents = {
@@ -121,14 +94,32 @@ const markdownComponents = {
   li: (props: React.HTMLAttributes<HTMLLIElement>) => (
     <li className="leading-relaxed" {...props} />
   ),
-  a: (props: React.AnchorHTMLAttributes<HTMLAnchorElement>) => (
-    <a
-      target="_blank"
-      rel="noopener noreferrer"
-      className="font-medium text-[color:var(--color-accent)] underline decoration-[color:var(--color-accent)]/30 underline-offset-2 transition-colors hover:decoration-[color:var(--color-accent)]"
-      {...props}
-    />
-  ),
+  a: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
+    // Normalize every URL the LLM emits through the provider allowlist
+    // (lib/providers.ts). Trusted domains become clickable links to the
+    // provider homepage (no deep-link 404 risk). Untrusted or invalid
+    // URLs render as styled plaintext so the recommendation still reads
+    // cleanly without a broken link.
+    const normalized = normalizeProviderUrl(href);
+    if (!normalized) {
+      return (
+        <span className="font-medium text-[color:var(--color-muted-foreground)]">
+          {children}
+        </span>
+      );
+    }
+    return (
+      <a
+        {...props}
+        href={normalized}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-medium text-[color:var(--color-accent)] underline decoration-[color:var(--color-accent)]/30 underline-offset-2 transition-colors hover:decoration-[color:var(--color-accent)]"
+      >
+        {children}
+      </a>
+    );
+  },
   strong: (props: React.HTMLAttributes<HTMLElement>) => (
     <strong className="font-semibold text-[color:var(--color-foreground)]" {...props} />
   ),

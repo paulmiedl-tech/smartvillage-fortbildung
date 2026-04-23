@@ -96,28 +96,59 @@ const markdownComponents = {
   ),
   a: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
     // Normalize every URL the LLM emits through the provider allowlist
-    // (lib/providers.ts). Trusted domains become clickable links to the
-    // provider homepage (no deep-link 404 risk). Untrusted or invalid
-    // URLs render as styled plaintext so the recommendation still reads
-    // cleanly without a broken link.
+    // (lib/providers.ts). Three rendering paths:
+    //   1. Hostname on allowlist → direct homepage link (primary accent)
+    //   2. Hostname NOT on allowlist but we have readable link text →
+    //      Google search fallback (same visual, acts as "search this
+    //      provider" button). Ensures no dead-ends: every visible link
+    //      takes the user somewhere useful.
+    //   3. No usable link text at all → plaintext fallback.
     const normalized = normalizeProviderUrl(href);
-    if (!normalized) {
+    const linkTextRaw = typeof children === "string"
+      ? children
+      : Array.isArray(children)
+        ? children.filter((c) => typeof c === "string").join(" ")
+        : "";
+    const linkText = linkTextRaw.trim();
+
+    if (normalized) {
       return (
-        <span className="font-medium text-[color:var(--color-muted-foreground)]">
+        <a
+          {...props}
+          href={normalized}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-[color:var(--color-accent)] underline decoration-[color:var(--color-accent)]/30 underline-offset-2 transition-colors hover:decoration-[color:var(--color-accent)]"
+        >
           {children}
-        </span>
+        </a>
       );
     }
+
+    // Fallback: LLM mentioned a provider/host we don't have on the
+    // allowlist. Route the click to a Google search for the link text
+    // rather than leaving the user with dead plaintext. The search result
+    // almost always surfaces the correct provider page on first try.
+    if (linkText.length >= 3 && linkText.length <= 80) {
+      const fallbackHref = `https://www.google.com/search?q=${encodeURIComponent(linkText)}`;
+      return (
+        <a
+          {...props}
+          href={fallbackHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          title={`Google-Suche nach „${linkText}"`}
+          className="font-medium text-[color:var(--color-muted-foreground)] underline decoration-dotted decoration-[color:var(--color-muted-foreground)]/50 underline-offset-2 transition-colors hover:text-[color:var(--color-accent)] hover:decoration-[color:var(--color-accent)]"
+        >
+          {children}
+        </a>
+      );
+    }
+
     return (
-      <a
-        {...props}
-        href={normalized}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="font-medium text-[color:var(--color-accent)] underline decoration-[color:var(--color-accent)]/30 underline-offset-2 transition-colors hover:decoration-[color:var(--color-accent)]"
-      >
+      <span className="font-medium text-[color:var(--color-muted-foreground)]">
         {children}
-      </a>
+      </span>
     );
   },
   strong: (props: React.HTMLAttributes<HTMLElement>) => (

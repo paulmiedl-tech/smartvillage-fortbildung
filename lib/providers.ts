@@ -29,8 +29,26 @@
  */
 const ALLOWED_DOMAIN_SUFFIXES: readonly string[] = [
   // === DE: Kammern und öffentliche Träger ===
-  "ihk.de",
+  "ihk.de",                       // catch-all für akademie.<stadt>.ihk.de Subdomains
   "ihk-akademie.de",
+  // Regionale IHKs mit eigener Top-Level-Domain (keine .ihk.de Subdomain)
+  "ihk-berlin.de",
+  "ihk-muenchen.de",
+  "ihk-koeln.de",
+  "ihk-frankfurt.de",
+  "frankfurt-main.ihk.de",
+  "ihk-stuttgart.de",
+  "ihk-hamburg.de",
+  "ihk-duesseldorf.de",
+  "ihk-nuernberg.de",
+  "ihk-hannover.de",
+  "ihk-dresden.de",
+  "ihk-leipzig.de",
+  "ihk-bremen.de",
+  "ihk-saarland.de",
+  "ihk-schwaben.de",
+  "ihk-nordwestfalen.de",
+  "ihk-rhein-neckar.de",
   "hwk.de",
   "handwerkskammer.de",
 
@@ -374,6 +392,16 @@ const ALLOWED_DOMAIN_SUFFIXES: readonly string[] = [
   // === Weitere etablierte Fachanbieter ===
   "oose.de",
   "sigs-datacom.de",
+  "pc-college.de",                // PC-COLLEGE, IT-Trainer seit 1984
+  "vsb-bildungswerk.de",          // VSB Bildungswerk (Köln/NRW)
+  "bitkom-research.de",
+  "dbb-akademie.de",              // dbb akademie
+  "gfs-akademie.de",
+  "gpm-ipma.de",                  // GPM / IPMA Projektmanagement
+  "vde.com",
+  "vdi.de",
+  "iqb.de",
+  "new-elements.de",              // New Elements IT-Training
   "ey.com",
   "pwc.com",
   "deloitte.com",

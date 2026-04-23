@@ -14,18 +14,18 @@ import { normalizeProviderUrl } from "@/lib/providers";
 /**
  * Detects a funding-status suffix at the end of a paragraph so the
  * rendering can replace it with a visual Badge component instead of
- * inline "· Förderfähig: X" text.
+ * inline "Förderfähig: X" text.
  *
- * Matches (separator required, detail optional):
- *   · Förderfähig
- *   · Förderfähig: Bildungsgutschein
- *   · Evtl. Förderfähig
+ * Matches (separator optional — the model occasionally drops the "·"
+ * before the funding word; we still recognize the pattern because the
+ * status vocabulary is distinctive and anchored to end-of-text):
+ *   · Förderfähig / Förderfähig
+ *   Förderfähig: Bildungsgutschein
  *   · Evtl. Förderfähig: Bildungsurlaub NRW
- *   · Keine Förderung
- *   · Keine Förderung bekannt
+ *   Keine Förderung / Keine Förderung bekannt
  */
 const FUNDING_SUFFIX_REGEX =
-  /\s*·\s*(Förderfähig|Evtl\.?\s*Förderfähig|Keine\s+Förderung(?:\s+bekannt)?)(?:\s*:\s*([^·\n]+?))?\s*$/i;
+  /\s*(?:·\s*)?(Förderfähig|Evtl\.?\s*Förderfähig|Keine\s+Förderung(?:\s+bekannt)?)(?:\s*:\s*([^·\n]+?))?\s*$/i;
 
 type FundingVariant = "success" | "tentative" | "muted";
 

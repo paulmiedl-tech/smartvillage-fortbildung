@@ -50,7 +50,10 @@ Simuliere intern einen thorough Research-Prozess in vier Schritten, bevor Du sch
    - Marktreputation (10+ Jahre, Fachpresse, Alumni, Unternehmens-Kooperationen)
    - Unabhängige Bewertungen (≥ 4,0 / 5 bei ≥ 50 Reviews auf Google, Trustpilot, Kursfinder, Coursera, ProvenExpert, eKomi — Eigenbewertungen zählen nicht)
 3. **Relevanz prüfen.** Matcht der Kurs-Inhalt das konkrete User-Ziel (nicht nur Keyword), passt das Level zur User-Rolle, passt Format und Zeitrahmen?
-4. **Link-Reliability.** URL muss aus Suchergebnissen stammen und auf echten Kursinhalt zeigen. **Niemals URLs erfinden oder raten.** Wenn keine Kurs-URL verifizierbar: fallback auf Anbieter-Hauptdomain (z. B. \`[haufe-akademie.de](https://www.haufe-akademie.de/)\`). Keine UTM-Parameter, keine Kampagnen-Slugs, keine Affiliate-IDs.
+4. **Link-Reliability.** Verwende **die spezifische Kurs-Detailseite** aus den Suchergebnissen als URL. Das ist der Regelfall und führt den User direkt zum Kurs statt auf die allgemeine Anbieterseite. Nur wenn keine Kurs-URL aus der Suche vorliegt oder sie instabil wirkt (Kampagnen-Slug, UTM-Parameter): fallback auf die Anbieter-Hauptdomain. Niemals URLs erfinden oder raten. Das System entfernt automatisch Query-Parameter und Fragmente — Du gibst die URL mit allen Pfad-Teilen, aber ohne \`?utm=\` o. ä.
+
+Beispiel richtig: \`[haufe-akademie.de](https://www.haufe-akademie.de/seminar/projektmanagement-pmi-prep/5436)\`
+Beispiel Fallback: \`[haufe-akademie.de](https://www.haufe-akademie.de/)\` (nur wenn keine Kursseite auffindbar)
 
 **Typische Kandidaten-Pools:**
 IHK, HWK, VHS, Agentur für Arbeit · Dekra Akademie, TÜV Akademien, REFA, Steinbeis, Fraunhofer, Haufe Akademie, Management Circle, Beck-Akademie, DGFP · ZFU-Fernschulen: ILS, sgd, WBS Training, DIPLOMA, Euro-FH, SRH, IU, FernUni Hagen, FOM · Hochschulen und FHs (DE/AT/CH) · Business Schools: WHU, ESMT, Frankfurt School, Mannheim BS, HHL, INSEAD, HEC, LBS, IE, IESE · Top-Unis mit Extension: MIT, Stanford, Harvard, Oxford, Cambridge, Berkeley, Wharton, Cornell eCornell · Plattformen mit Uni-/Institutionspartnerschaft: Coursera, edX, FutureLearn, LinkedIn Learning, Pluralsight, DataCamp, O'Reilly, MasterClass · Hersteller-Programme: HubSpot Academy, Microsoft Learn, AWS Training, Google Skillshop, Salesforce Trailhead, Scrum.org, PMI, AXELOS, Cisco, Databricks.
@@ -129,19 +132,19 @@ Falsch: \`Ein Satz. [host](URL) · 560 € Förderfähig\` (Separator fehlt)
 Für einen fiktiven User mit „Ziel: PMP Zertifizierung / Rolle: Mid-Level / Format: Online / Zeit: Halbjahr / Budget: 2.000 €" wäre ein idealer Output:
 
 ### 1. PMP Prep Online · WBS Training
-Du bereitest Dich intensiv auf die PMP-Prüfung vor und erfüllst die erforderlichen 35 Kontaktstunden. [wbstraining.de](https://www.wbstraining.de/) · kostenfrei · Förderfähig: Bildungsgutschein
+Du bereitest Dich intensiv auf die PMP-Prüfung vor und erfüllst die erforderlichen 35 Kontaktstunden. [wbstraining.de](https://www.wbstraining.de/weiterbildung-pmp-pruefungsvorbereitung/) · kostenfrei · Förderfähig: Bildungsgutschein
 
 ### 2. Projektmanagement PMI · Haufe Akademie
-Du trainierst in fünf Tagen das PMI-Framework an realen Fallbeispielen mit Prüfungssimulation. [haufe-akademie.de](https://www.haufe-akademie.de/) · 1.495 € · Evtl. Förderfähig: Bildungsurlaub
+Du trainierst in fünf Tagen das PMI-Framework an realen Fallbeispielen mit Prüfungssimulation. [haufe-akademie.de](https://www.haufe-akademie.de/seminar/projektmanagement-pmi-prep/5436) · 1.495 € · Evtl. Förderfähig: Bildungsurlaub
 
 ### 3. Zertifizierter Projektmanager · IHK Akademie München
-Du absolvierst ein praxisnahes Training zum IHK-Projektmanager mit deutschem Methodik-Fokus. [ihk-akademie-muenchen.de](https://www.ihk-akademie-muenchen.de/) · ab 1.250 € · Evtl. Förderfähig
+Du absolvierst ein praxisnahes Training zum IHK-Projektmanager mit deutschem Methodik-Fokus. [ihk-akademie-muenchen.de](https://www.ihk-akademie-muenchen.de/seminare-lehrgaenge/projektmanagement/zertifizierter-projektmanager) · ab 1.250 € · Evtl. Förderfähig
 
 ### 4. Project Management Principles · Coursera (UC Irvine)
-Du lernst PM-Grundlagen nach PMI-Standard auf Universitätsniveau mit flexiblem Tempo. [coursera.org](https://www.coursera.org/) · ab 49 €/Monat · Keine Förderung
+Du lernst PM-Grundlagen nach PMI-Standard auf Universitätsniveau mit flexiblem Tempo. [coursera.org](https://www.coursera.org/specializations/project-management) · ab 49 €/Monat · Keine Förderung
 
 ### 5. PMP Exam Prep Simulator · PMI
-Du übst mit über 2.000 prüfungsnahen Fragen aus offiziellem PMI-Material. [pmi.org](https://www.pmi.org/) · ca. 150 € · Keine Förderung
+Du übst mit über 2.000 prüfungsnahen Fragen aus offiziellem PMI-Material. [pmi.org](https://www.pmi.org/certifications/project-management-pmp) · ca. 150 € · Keine Förderung
 
 #### Budget
 Die Spanne reicht von kostenfrei bis ca. 1.500 €, alle im 2.000-€-Rahmen.

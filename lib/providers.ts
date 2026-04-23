@@ -419,16 +419,29 @@ const ALLOWED_DOMAIN_SUFFIXES: readonly string[] = [
 ];
 
 /**
- * Strip URL to its homepage form if the hostname is trusted.
+ * Normalize a provider URL for trusted domains.
  *
  * Returns:
- *   - A normalized URL string (e.g. "https://www.haufe-akademie.de/")
- *     when the hostname matches an allowed suffix
+ *   - Full URL with path preserved (query + fragment stripped) when
+ *     the hostname matches an allowed suffix
  *   - `null` when the URL is invalid, a Vertex Search redirect, or
- *     the hostname is not on the allowlist (caller renders plaintext)
+ *     the hostname is not on the allowlist (caller renders Google
+ *     search fallback)
+ *
+ * Rationale for preserving path: URLs that come from Google Search
+ * Grounding were indexed recently and are typically live. Stripping
+ * to homepage made every click land on the provider's front page,
+ * forcing users to search for the course again. With path preserved,
+ * users land directly on the course detail page (the desired UX).
+ * Query params (UTM, campaign tracking) and fragments are still
+ * stripped because they are never part of the content identifier
+ * and often signal unstable campaign landings.
  *
  * @example
- *   normalizeProviderUrl("https://www.haufe-akademie.de/seminar/abc/123?utm=x")
+ *   normalizeProviderUrl("https://www.haufe-akademie.de/seminar/abc/123?utm=x#section")
+ *   → "https://www.haufe-akademie.de/seminar/abc/123"
+ *
+ *   normalizeProviderUrl("https://www.haufe-akademie.de/")
  *   → "https://www.haufe-akademie.de/"
  *
  *   normalizeProviderUrl("https://vertexaisearch.cloud.google.com/grounding-api-redirect/...")
@@ -461,10 +474,10 @@ export function normalizeProviderUrl(rawUrl: string | undefined | null): string 
 
   if (!trusted) return null;
 
-  // Preserve the full hostname (so regional IHK subdomains stay intact)
-  // but strip path and query — we only link to the domain root to avoid
-  // any chance of 404 on a specific course page.
-  return `https://${url.hostname}/`;
+  // Keep path (the course identifier). Strip query and fragment — these
+  // are tracking/anchor artifacts and often signal unstable campaign URLs.
+  const path = url.pathname === "" ? "/" : url.pathname;
+  return `${url.protocol}//${url.hostname}${path}`;
 }
 
 /**

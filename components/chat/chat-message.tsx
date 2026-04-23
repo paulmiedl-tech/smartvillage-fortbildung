@@ -68,6 +68,37 @@ function extractFundingSuffix(children: React.ReactNode): FundingExtraction | nu
   return { before, variant, label };
 }
 
+/**
+ * Extract trusted hostnames from Google Search Grounding `source-url` parts.
+ *
+ * Each source-url part carries a `title` that is typically the original
+ * hostname or a page title containing the hostname. We pull the first
+ * domain-looking substring from each title.
+ *
+ * The resulting set is used by normalizeProviderUrl as a second trust
+ * gate: only URLs whose hostname was actually surfaced by Grounding keep
+ * their path; otherwise they get stripped to the provider homepage to
+ * avoid 404s from model-reconstructed deep-links.
+ */
+const HOSTNAME_PATTERN = /\b([a-z0-9][a-z0-9-]*(?:\.[a-z0-9][a-z0-9-]*)+)\b/i;
+
+function extractGroundedHostnames(parts: UIMessage["parts"]): Set<string> {
+  const set = new Set<string>();
+  for (const part of parts) {
+    if (part.type !== "source-url") continue;
+    const raw = (part.title ?? "").trim();
+    if (!raw) continue;
+    const match = raw.match(HOSTNAME_PATTERN);
+    if (!match) continue;
+    const host = match[1].toLowerCase().replace(/^www\./, "");
+    // Basic sanity: must contain at least one dot and look like a TLD
+    if (host.includes(".") && !host.endsWith(".")) {
+      set.add(host);
+    }
+  }
+  return set;
+}
+
 interface ChatMessageProps {
   message: UIMessage;
   isStreaming?: boolean;
@@ -81,10 +112,20 @@ export function ChatMessage({ message, isStreaming = false }: ChatMessageProps) 
     .map((part) => part.text)
     .join("");
 
-  // Grounding sources intentionally ignored: we derive all user-facing
-  // links from markdown links inside the assistant text, normalized via
-  // the provider allowlist in lib/providers.ts. Raw Vertex redirect URLs
-  // from source-url parts would leak ugly redirect hosts.
+  // Grounding source hostnames that Gemini actually surfaced during
+  // Google Search. Used as a second trust gate when rendering links:
+  // allowlisted URLs whose hostname is NOT in this set get stripped to
+  // the provider homepage (guards against model-hallucinated deep-links
+  // reconstructed from training knowledge).
+  const groundedHostnames = React.useMemo(
+    () => extractGroundedHostnames(message.parts),
+    [message.parts],
+  );
+
+  const markdownComponents = React.useMemo(
+    () => buildMarkdownComponents(groundedHostnames),
+    [groundedHostnames],
+  );
 
   return (
     <motion.div
@@ -130,7 +171,8 @@ export function ChatMessage({ message, isStreaming = false }: ChatMessageProps) 
   );
 }
 
-const markdownComponents = {
+function buildMarkdownComponents(groundedHostnames: Set<string>) {
+  return {
   p: ({ children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => {
     // If this paragraph ends with a funding-status suffix (see
     // FUNDING_SUFFIX_REGEX above), strip the suffix from the text and
@@ -175,13 +217,13 @@ const markdownComponents = {
   a: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
     // Normalize every URL the LLM emits through the provider allowlist
     // (lib/providers.ts). Three rendering paths:
-    //   1. Hostname on allowlist → direct homepage link (primary accent)
-    //   2. Hostname NOT on allowlist but we have readable link text →
-    //      Google search fallback (same visual, acts as "search this
-    //      provider" button). Ensures no dead-ends: every visible link
-    //      takes the user somewhere useful.
-    //   3. No usable link text at all → plaintext fallback.
-    const normalized = normalizeProviderUrl(href);
+    //   1. Hostname on allowlist AND grounded → direct deep-link (accent)
+    //   2. Hostname on allowlist but NOT grounded → homepage link
+    //      (the deep path may have been reconstructed from training
+    //      knowledge; we play safe)
+    //   3. Hostname NOT on allowlist → Google search fallback
+    //   4. No usable link text → plaintext
+    const normalized = normalizeProviderUrl(href, groundedHostnames);
     const linkTextRaw = typeof children === "string"
       ? children
       : Array.isArray(children)
@@ -264,4 +306,5 @@ const markdownComponents = {
   td: (props: React.TdHTMLAttributes<HTMLTableCellElement>) => (
     <td className="border-b border-[color:var(--color-border)] px-3 py-2" {...props} />
   ),
-};
+  };
+}

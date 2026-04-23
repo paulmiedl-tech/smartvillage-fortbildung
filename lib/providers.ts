@@ -428,29 +428,46 @@ const ALLOWED_DOMAIN_SUFFIXES: readonly string[] = [
  *     the hostname is not on the allowlist (caller renders Google
  *     search fallback)
  *
- * Rationale for preserving path: URLs that come from Google Search
- * Grounding were indexed recently and are typically live. Stripping
- * to homepage made every click land on the provider's front page,
- * forcing users to search for the course again. With path preserved,
- * users land directly on the course detail page (the desired UX).
- * Query params (UTM, campaign tracking) and fragments are still
- * stripped because they are never part of the content identifier
- * and often signal unstable campaign landings.
+ * Two-stage trust model for path preservation:
+ *   1. Hostname must be on the static allowlist (ALLOWED_DOMAIN_SUFFIXES)
+ *   2. If `groundedHostnames` is provided (the set of hostnames that
+ *      Google Search Grounding actually returned in the current
+ *      response), the hostname must also be in that set to keep the
+ *      path. If the hostname is on the allowlist but NOT in the
+ *      grounded set, the URL is likely a model-hallucinated deep-link
+ *      reconstructed from training knowledge. We defensively strip to
+ *      the provider homepage in that case — the user still lands on
+ *      a live page of the right provider, just not the specific course.
+ *
+ * When `groundedHostnames` is undefined, path preservation applies to
+ * any allowlisted URL (legacy behaviour, e.g. unit tests or contexts
+ * without grounding data).
  *
  * @example
- *   normalizeProviderUrl("https://www.haufe-akademie.de/seminar/abc/123?utm=x#section")
+ *   // Grounded link — preserve path
+ *   normalizeProviderUrl(
+ *     "https://www.haufe-akademie.de/seminar/abc/123?utm=x",
+ *     new Set(["haufe-akademie.de"])
+ *   )
  *   → "https://www.haufe-akademie.de/seminar/abc/123"
  *
- *   normalizeProviderUrl("https://www.haufe-akademie.de/")
+ *   // Allowlisted hostname but NOT in grounded set → strip to homepage
+ *   normalizeProviderUrl(
+ *     "https://www.haufe-akademie.de/seminar/fantasy-course",
+ *     new Set(["ihk-akademie-muenchen.de"])
+ *   )
  *   → "https://www.haufe-akademie.de/"
  *
- *   normalizeProviderUrl("https://vertexaisearch.cloud.google.com/grounding-api-redirect/...")
- *   → null  (redirect URLs never clickable)
+ *   normalizeProviderUrl("https://vertexaisearch.cloud.google.com/...")
+ *   → null
  *
  *   normalizeProviderUrl("https://fake-coach-xyz.com/guru")
- *   → null  (not on allowlist)
+ *   → null
  */
-export function normalizeProviderUrl(rawUrl: string | undefined | null): string | null {
+export function normalizeProviderUrl(
+  rawUrl: string | undefined | null,
+  groundedHostnames?: ReadonlySet<string>,
+): string | null {
   if (!rawUrl || typeof rawUrl !== "string") return null;
 
   let url: URL;
@@ -468,11 +485,30 @@ export function normalizeProviderUrl(rawUrl: string | undefined | null): string 
 
   const host = url.hostname.toLowerCase();
 
-  const trusted = ALLOWED_DOMAIN_SUFFIXES.some((suffix) => {
+  const allowlisted = ALLOWED_DOMAIN_SUFFIXES.some((suffix) => {
     return host === suffix || host.endsWith("." + suffix);
   });
 
-  if (!trusted) return null;
+  if (!allowlisted) return null;
+
+  // Check grounding trust if a source set was provided.
+  if (groundedHostnames && groundedHostnames.size > 0) {
+    const bareHost = host.replace(/^www\./, "");
+    const isGrounded = Array.from(groundedHostnames).some((sourceHost) => {
+      const sourceBare = sourceHost.replace(/^www\./, "");
+      return (
+        bareHost === sourceBare ||
+        bareHost.endsWith("." + sourceBare) ||
+        sourceBare.endsWith("." + bareHost)
+      );
+    });
+    if (!isGrounded) {
+      // Allowlisted hostname but not surfaced by Grounding — the deep-link
+      // was likely reconstructed from the model's training knowledge and
+      // may not actually exist. Strip to the homepage to avoid 404s.
+      return `${url.protocol}//${url.hostname}/`;
+    }
+  }
 
   // Keep path (the course identifier). Strip query and fragment — these
   // are tracking/anchor artifacts and often signal unstable campaign URLs.

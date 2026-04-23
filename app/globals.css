@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans:
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  /* smartvillage palette — light */
+  --color-background: #fbfaf9;
+  --color-foreground: #000831;
+  --color-card: #ffffff;
+  --color-card-foreground: #000831;
+  --color-muted: #f6f3ef;
+  --color-muted-foreground: #4a5568;
+  --color-border: #e8e3dc;
+  --color-input: #e8e3dc;
+  --color-ring: #000831;
+
+  --color-primary: #000831;
+  --color-primary-foreground: #fbfaf9;
+
+  --color-accent: #ff5a49;
+  --color-accent-foreground: #ffffff;
+  --color-accent-hover: #e8493a;
+
+  --color-lavender: #d1deff;
+  --color-cream: #f1ebe4;
+
+  --color-success: #48bb78;
+  --color-destructive: #e53e3e;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+
+  --shadow-soft: 0 1px 2px rgb(0 8 49 / 0.04), 0 2px 8px rgb(0 8 49 / 0.04);
+  --shadow-lift:
+    0 2px 4px rgb(0 8 49 / 0.05), 0 12px 28px rgb(0 8 49 / 0.08);
+
+  --animate-breathe: breathe 1.5s ease-in-out infinite;
+
+  @keyframes breathe {
+    0%, 100% { opacity: 0.35; transform: scale(0.85); }
+    50% { opacity: 1; transform: scale(1); }
+  }
+}
+
+.dark {
+  --color-background: #0a0e24;
+  --color-foreground: #fbfaf9;
+  --color-card: #111634;
+  --color-card-foreground: #fbfaf9;
+  --color-muted: #161b3d;
+  --color-muted-foreground: #9aa3c7;
+  --color-border: #242a54;
+  --color-input: #242a54;
+  --color-ring: #d1deff;
+
+  --color-primary: #d1deff;
+  --color-primary-foreground: #000831;
+
+  --color-accent: #ff6f60;
+  --color-accent-foreground: #0a0e24;
+  --color-accent-hover: #ff8476;
+
+  /* In dark mode, lavender must be a dark tinted surface so that light-lavender
+     text (primary) placed on top stays readable. Using the light-mode value
+     here would collide with the dark-mode primary color and render invisible. */
+  --color-lavender: #26305a;
+
+  --color-success: #68d391;
+  --color-destructive: #fc8181;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    background-color: transparent;
+  }
+
+  ::selection {
+    background-color: var(--color-accent);
+    color: var(--color-accent-foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+
+  button:focus:not(:focus-visible) {
+    outline: none;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 9999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      transform: none !important;
+    }
+  }
+}

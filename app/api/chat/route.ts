@@ -2,6 +2,7 @@ import { google } from "@ai-sdk/google";
 import { convertToModelMessages, streamText, type UIMessage } from "ai";
 
 import { SYSTEM_PROMPT } from "@/lib/ai/system-prompt";
+import { checkRateLimit, getClientIp } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -21,6 +22,27 @@ export async function POST(req: Request) {
     );
   }
 
+  const ip = getClientIp(req);
+  const rate = await checkRateLimit(`chat:${ip}`);
+  if (!rate.success) {
+    const retryAfter = Math.max(1, Math.ceil((rate.resetAt - Date.now()) / 1000));
+    return new Response(
+      JSON.stringify({
+        error:
+          "Du hast gerade viele Nachrichten geschickt. Bitte versuch es in ein paar Minuten nochmal.",
+      }),
+      {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": String(retryAfter),
+          "X-RateLimit-Remaining": "0",
+          "X-RateLimit-Reset": String(Math.ceil(rate.resetAt / 1000)),
+        },
+      },
+    );
+  }
+
   const { messages }: { messages: UIMessage[] } = await req.json();
   const recent = messages.slice(-MAX_HISTORY_MESSAGES);
 
@@ -36,5 +58,9 @@ export async function POST(req: Request) {
 
   return result.toUIMessageStreamResponse({
     sendSources: true,
+    headers: {
+      "X-RateLimit-Remaining": String(rate.remaining),
+      "X-RateLimit-Reset": String(Math.ceil(rate.resetAt / 1000)),
+    },
   });
 }

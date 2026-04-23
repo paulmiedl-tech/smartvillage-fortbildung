@@ -34,8 +34,12 @@ Dev-Server: http://localhost:3000
 | Name | Required | Scope | Purpose |
 |---|---|---|---|
 | `GOOGLE_GENERATIVE_AI_API_KEY` | ✅ | server-side only | Gemini API Key aus Google AI Studio |
+| `UPSTASH_REDIS_REST_URL` | optional | server-side | Persistentes Rate-Limiting (sonst In-Memory-Fallback) |
+| `UPSTASH_REDIS_REST_TOKEN` | optional | server-side | dito |
 
-**Hinweis:** Der Key wird ausschließlich serverseitig in [app/api/chat/route.ts](app/api/chat/route.ts) gelesen. Niemals mit `NEXT_PUBLIC_`-Präfix versehen, sonst landet er im Client-Bundle.
+**Hinweis:** Alle Keys werden ausschließlich serverseitig gelesen. Niemals mit `NEXT_PUBLIC_`-Präfix versehen, sonst landen sie im Client-Bundle.
+
+Wenn die Upstash-Variablen fehlen, greift automatisch ein In-Memory-Rate-Limit (pro Serverless-Instanz, schwächer aber funktional).
 
 ## Scripts
 
@@ -104,6 +108,14 @@ Die Region ist in [vercel.json](vercel.json) auf `fra1` (Frankfurt) gesetzt für
 ### 4. Custom Domain (optional)
 
 Unter **Project Settings → Domains** beliebige Domain anbinden. Vercel stellt automatisch ein TLS-Zertifikat aus.
+
+### 5. Upstash Redis für Rate Limiting (empfohlen für Produktion)
+
+Unter **Storage → Marketplace Database Providers → Upstash for Redis → Create** ein KV-Store erzeugen. Die beiden Env-Variablen `UPSTASH_REDIS_REST_URL` und `UPSTASH_REDIS_REST_TOKEN` werden automatisch in das Projekt injiziert. Kein Code-Change notwendig, der Rate-Limiter erkennt sie und schaltet von In-Memory auf Upstash um.
+
+### 6. Vercel Analytics + Speed Insights aktivieren
+
+Unter **Analytics → Enable** und **Speed Insights → Enable** im Vercel-Projekt. Code-Integration ist schon da ([app/layout.tsx](app/layout.tsx)), Daten laufen sofort rein nach dem Enable. Free-Tier deckt kleine bis mittlere Projekte.
 
 ## Sicherheit
 

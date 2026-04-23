@@ -8,7 +8,65 @@ import type { UIMessage } from "ai";
 
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/logo";
+import { Badge } from "@/components/ui/badge";
 import { normalizeProviderUrl } from "@/lib/providers";
+
+/**
+ * Detects a funding-status suffix at the end of a paragraph so the
+ * rendering can replace it with a visual Badge component instead of
+ * inline "· Förderfähig: X" text.
+ *
+ * Matches (separator required, detail optional):
+ *   · Förderfähig
+ *   · Förderfähig: Bildungsgutschein
+ *   · Evtl. Förderfähig
+ *   · Evtl. Förderfähig: Bildungsurlaub NRW
+ *   · Keine Förderung
+ *   · Keine Förderung bekannt
+ */
+const FUNDING_SUFFIX_REGEX =
+  /\s*·\s*(Förderfähig|Evtl\.?\s*Förderfähig|Keine\s+Förderung(?:\s+bekannt)?)(?:\s*:\s*([^·\n]+?))?\s*$/i;
+
+type FundingVariant = "success" | "tentative" | "muted";
+
+interface FundingExtraction {
+  before: React.ReactNode[];
+  variant: FundingVariant;
+  label: string;
+}
+
+function extractFundingSuffix(children: React.ReactNode): FundingExtraction | null {
+  const arr = React.Children.toArray(children);
+  if (arr.length === 0) return null;
+  const lastIndex = arr.length - 1;
+  const last = arr[lastIndex];
+  if (typeof last !== "string") return null;
+
+  const match = last.match(FUNDING_SUFFIX_REGEX);
+  if (!match || match.index === undefined) return null;
+
+  const statusRaw = match[1].toLowerCase().replace(/\s+/g, " ").trim();
+  const detail = match[2]?.trim();
+
+  let variant: FundingVariant;
+  let label: string;
+  if (statusRaw.startsWith("evtl")) {
+    variant = "tentative";
+    label = detail ? `Evtl. förderfähig · ${detail}` : "Evtl. förderfähig";
+  } else if (statusRaw.startsWith("keine")) {
+    variant = "muted";
+    label = "Keine Förderung";
+  } else {
+    variant = "success";
+    label = detail ? `Förderfähig · ${detail}` : "Förderfähig";
+  }
+
+  const truncatedLast = last.slice(0, match.index).trimEnd();
+  const before: React.ReactNode[] = [...arr.slice(0, lastIndex)];
+  if (truncatedLast.length > 0) before.push(truncatedLast);
+
+  return { before, variant, label };
+}
 
 interface ChatMessageProps {
   message: UIMessage;
@@ -73,9 +131,29 @@ export function ChatMessage({ message, isStreaming = false }: ChatMessageProps) 
 }
 
 const markdownComponents = {
-  p: (props: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className="mb-3 last:mb-0" {...props} />
-  ),
+  p: ({ children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => {
+    // If this paragraph ends with a funding-status suffix (see
+    // FUNDING_SUFFIX_REGEX above), strip the suffix from the text and
+    // render it as a visual Badge at the end. The badge carries its own
+    // whitespace-nowrap, so it wraps cleanly to the next line on narrow
+    // viewports instead of breaking internally.
+    const funding = extractFundingSuffix(children);
+    if (funding) {
+      return (
+        <p className="mb-3 last:mb-0" {...props}>
+          {funding.before}{" "}
+          <Badge variant={funding.variant} className="align-baseline">
+            {funding.label}
+          </Badge>
+        </p>
+      );
+    }
+    return (
+      <p className="mb-3 last:mb-0" {...props}>
+        {children}
+      </p>
+    );
+  },
   h1: (props: React.HTMLAttributes<HTMLHeadingElement>) => (
     <h1 className="mb-2 mt-4 text-lg font-semibold first:mt-0" {...props} />
   ),

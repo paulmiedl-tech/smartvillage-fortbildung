@@ -422,40 +422,43 @@ const ALLOWED_DOMAIN_SUFFIXES: readonly string[] = [
  * Normalize a provider URL for trusted domains.
  *
  * Returns:
- *   - Full URL with path preserved (query + fragment stripped) when
- *     the hostname matches an allowed suffix
+ *   - Provider homepage URL (path stripped) for allowlisted hostnames
+ *     by default — safe against URL hallucination and link rot
+ *   - Full URL with path preserved ONLY when `groundedHostnames`
+ *     explicitly contains this hostname (confirmed by Google Search
+ *     Grounding that the provider actually has a live presence for
+ *     this query)
  *   - `null` when the URL is invalid, a Vertex Search redirect, or
- *     the hostname is not on the allowlist (caller renders Google
- *     search fallback)
+ *     the hostname is not on the allowlist
  *
- * Two-stage trust model for path preservation:
- *   1. Hostname must be on the static allowlist (ALLOWED_DOMAIN_SUFFIXES)
- *   2. If `groundedHostnames` is provided (the set of hostnames that
- *      Google Search Grounding actually returned in the current
- *      response), the hostname must also be in that set to keep the
- *      path. If the hostname is on the allowlist but NOT in the
- *      grounded set, the URL is likely a model-hallucinated deep-link
- *      reconstructed from training knowledge. We defensively strip to
- *      the provider homepage in that case — the user still lands on
- *      a live page of the right provider, just not the specific course.
+ * Why homepage-by-default: Gemini Flash frequently reconstructs
+ * plausible-looking deep-links from training patterns ("Haufe URLs
+ * look like /seminar/<slug>/<id>") that don't actually exist. Even
+ * when the model does ground, URLs rot over time (courses archived,
+ * slugs renamed). Homepages virtually never 404. We only preserve
+ * the path when we have positive evidence (grounded hostname match)
+ * that the provider has live content for this topic.
  *
- * When `groundedHostnames` is undefined, path preservation applies to
- * any allowlisted URL (legacy behaviour, e.g. unit tests or contexts
- * without grounding data).
+ * When `groundedHostnames` is undefined, the strict homepage-default
+ * applies — no way to verify so we play safe.
  *
  * @example
- *   // Grounded link — preserve path
+ *   // Grounded hostname + allowlisted → preserve path
  *   normalizeProviderUrl(
  *     "https://www.haufe-akademie.de/seminar/abc/123?utm=x",
  *     new Set(["haufe-akademie.de"])
  *   )
  *   → "https://www.haufe-akademie.de/seminar/abc/123"
  *
- *   // Allowlisted hostname but NOT in grounded set → strip to homepage
+ *   // Allowlisted but NOT grounded → strip to homepage (safe)
  *   normalizeProviderUrl(
  *     "https://www.haufe-akademie.de/seminar/fantasy-course",
  *     new Set(["ihk-akademie-muenchen.de"])
  *   )
+ *   → "https://www.haufe-akademie.de/"
+ *
+ *   // No grounding info at all → strip to homepage (safe)
+ *   normalizeProviderUrl("https://www.haufe-akademie.de/seminar/abc/123")
  *   → "https://www.haufe-akademie.de/"
  *
  *   normalizeProviderUrl("https://vertexaisearch.cloud.google.com/...")
@@ -491,7 +494,9 @@ export function normalizeProviderUrl(
 
   if (!allowlisted) return null;
 
-  // Check grounding trust if a source set was provided.
+  // Path preservation requires POSITIVE confirmation via grounding.
+  // If the hostname was explicitly surfaced by Google Search in this
+  // response, keep the deep-link. Otherwise fall through to homepage.
   if (groundedHostnames && groundedHostnames.size > 0) {
     const bareHost = host.replace(/^www\./, "");
     const isGrounded = Array.from(groundedHostnames).some((sourceHost) => {
@@ -502,18 +507,18 @@ export function normalizeProviderUrl(
         sourceBare.endsWith("." + bareHost)
       );
     });
-    if (!isGrounded) {
-      // Allowlisted hostname but not surfaced by Grounding — the deep-link
-      // was likely reconstructed from the model's training knowledge and
-      // may not actually exist. Strip to the homepage to avoid 404s.
-      return `${url.protocol}//${url.hostname}/`;
+    if (isGrounded) {
+      // Grounded match → preserve path (strip query/fragment only)
+      const path = url.pathname === "" ? "/" : url.pathname;
+      return `${url.protocol}//${url.hostname}${path}`;
     }
   }
 
-  // Keep path (the course identifier). Strip query and fragment — these
-  // are tracking/anchor artifacts and often signal unstable campaign URLs.
-  const path = url.pathname === "" ? "/" : url.pathname;
-  return `${url.protocol}//${url.hostname}${path}`;
+  // Safe default: strip to provider homepage. Guards against both
+  // model URL hallucination and course-page link rot. User lands
+  // on a live page of the right provider and can navigate to the
+  // specific course from there.
+  return `${url.protocol}//${url.hostname}/`;
 }
 
 /**

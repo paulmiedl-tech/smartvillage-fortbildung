@@ -216,13 +216,16 @@ function buildMarkdownComponents(groundedHostnames: Set<string>) {
   ),
   a: ({ href, children, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
     // Normalize every URL the LLM emits through the provider allowlist
-    // (lib/providers.ts). Three rendering paths:
-    //   1. Hostname on allowlist AND grounded → direct deep-link (accent)
-    //   2. Hostname on allowlist but NOT grounded → homepage link
-    //      (the deep path may have been reconstructed from training
-    //      knowledge; we play safe)
-    //   3. Hostname NOT on allowlist → Google search fallback
-    //   4. No usable link text → plaintext
+    // (lib/providers.ts). Four rendering paths:
+    //   1. Allowlisted AND grounded     → deep-link to course page
+    //   2. Allowlisted, no grounding    → homepage (safe default)
+    //   3. Not allowlisted              → Google search fallback
+    //   4. No usable link text          → plaintext
+    //
+    // Default favours safety over deep-linking: homepages virtually
+    // never 404 whereas course-specific paths rot or are hallucinated
+    // by the model. Deep-links only appear when Google Search Grounding
+    // actually confirms the hostname in this response.
     const normalized = normalizeProviderUrl(href, groundedHostnames);
     const linkTextRaw = typeof children === "string"
       ? children

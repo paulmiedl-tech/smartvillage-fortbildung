@@ -28,13 +28,13 @@
  * rejecting look-alikes (fakeihk.de).
  */
 const ALLOWED_DOMAIN_SUFFIXES: readonly string[] = [
-  // Kammern und öffentliche Träger
+  // === DE: Kammern und öffentliche Träger ===
   "ihk.de",
   "ihk-akademie.de",
   "hwk.de",
   "handwerkskammer.de",
 
-  // Volkshochschulen (bundesweit + Länder-/Stadtportale)
+  // === DE: Volkshochschulen (bundesweit + Städte) ===
   "vhs.de",
   "volkshochschule.de",
   "koelner-vhs.de",
@@ -47,8 +47,13 @@ const ALLOWED_DOMAIN_SUFFIXES: readonly string[] = [
   "vhs-frankfurt.de",
   "vhs-hamburg.de",
   "vhs-duesseldorf.de",
+  "vhs-bremen.de",
+  "vhs-leipzig.de",
+  "vhs-dresden.de",
+  "vhs-hannover.de",
+  "vhs-nuernberg.de",
 
-  // Etablierte Akademien
+  // === DE: Etablierte Akademien und Weiterbildungsinstitute ===
   "haufe-akademie.de",
   "management-circle.de",
   "beck-akademie.de",
@@ -57,27 +62,41 @@ const ALLOWED_DOMAIN_SUFFIXES: readonly string[] = [
   "steinbeis.de",
   "steinbeis-smi.de",
   "fraunhofer.de",
+  "iml.fraunhofer.de",
   "dgfp.de",
+  "dgq.de",                      // Deutsche Gesellschaft für Qualität
+  "gi.de",                        // Gesellschaft für Informatik
+  "bitkom.org",
+  "bitkom-akademie.de",
 
-  // TÜV-Gruppe
+  // === DE: TÜV-Gruppe ===
   "tuv.com",
   "tuev-nord.de",
+  "tuv-nord.com",
   "tuev-sued.de",
   "tuv-sued.de",
   "tuv-rheinland.de",
   "tuev-rheinland.de",
 
-  // Fernschulen und Fernhochschulen
+  // === DE: Fernschulen und Fernhochschulen ===
   "ils.de",
   "sgd.de",
   "diploma.de",
   "euro-fh.de",
   "wbstraining.de",
   "srh-fernhochschule.de",
-  "iu.de",
+  "iu.de",                        // IU Internationale Hochschule
+  "iubh.de",
+  "iubh-fernstudium.de",
   "apollon-hochschule.de",
+  "fernuni-hagen.de",             // FernUniversität in Hagen (staatlich)
+  "fom.de",                       // FOM Hochschule
+  "akad.de",                      // AKAD Hochschule
+  "wb-fernstudium.de",
+  "wilhelmbuechner.de",           // Wilhelm Büchner Hochschule
+  "hfh-fernstudium.de",           // Hamburger Fern-Hochschule
 
-  // Hochschulen (Top-Universitäten und technische)
+  // === DE: Universitäten ===
   "tum.de",
   "rwth-aachen.de",
   "tu-berlin.de",
@@ -86,6 +105,9 @@ const ALLOWED_DOMAIN_SUFFIXES: readonly string[] = [
   "tu-darmstadt.de",
   "tu-dresden.de",
   "tu-muenchen.de",
+  "tu-chemnitz.de",
+  "tu-braunschweig.de",
+  "tu-ilmenau.de",
   "kit.edu",
   "uni-muenchen.de",
   "lmu.de",
@@ -96,56 +118,245 @@ const ALLOWED_DOMAIN_SUFFIXES: readonly string[] = [
   "uni-goettingen.de",
   "uni-stuttgart.de",
   "uni-mannheim.de",
+  "uni-konstanz.de",
+  "uni-freiburg.de",
+  "uni-tuebingen.de",
+  "uni-jena.de",
+  "uni-leipzig.de",
+  "uni-potsdam.de",
+  "uni-bielefeld.de",
+  "uni-duisburg-essen.de",
+  "uni-muenster.de",
   "fau.de",
   "uni-erlangen.de",
   "uni-wuerzburg.de",
   "uni-regensburg.de",
-  "hsg.ch",
-  "unisg.ch",
-  "eth.ch",
-  "ethz.ch",
+  "uni-passau.de",
+  "uni-mainz.de",
+  "uni-trier.de",
 
-  // Fachhochschulen (Beispiele, erweiterbar)
+  // === DE: Fachhochschulen ===
   "frankfurt-university.de",
   "th-koeln.de",
   "th-nuernberg.de",
+  "th-deggendorf.de",
   "hs-augsburg.de",
   "hs-muenchen.de",
   "hs-anhalt.de",
+  "hs-mannheim.de",
+  "hs-karlsruhe.de",
+  "hs-pforzheim.de",
+  "hs-esslingen.de",
+  "hs-hannover.de",
+  "hs-bremen.de",
+  "hs-osnabrueck.de",
+  "fh-aachen.de",
+  "fh-bielefeld.de",
+  "fh-muenster.de",
+  "fh-dortmund.de",
+  "hda.de",                       // Hochschule Darmstadt
+  "haw-hamburg.de",               // Hochschule für Angewandte Wissenschaften
+  "hs-neu-ulm.de",
 
-  // Internationale Lernplattformen
+  // === DE: Business Schools und Executive Education ===
+  "whu.edu",                      // WHU Otto Beisheim
+  "esmt.org",                     // ESMT Berlin
+  "esmt.berlin",
+  "mannheim-business-school.com",
+  "mannheim-business-school.de",
+  "frankfurt-school.de",          // Frankfurt School of Finance
+  "hhl.de",                       // HHL Leipzig Graduate School
+  "kuehne-logistics.com",         // KLU Hamburg
+  "hsba.de",                      // Hamburg School of Business Administration
+  "zeppelin-university.de",
+  "provadis-hochschule.de",
+
+  // === DE: Innovations-/Tech-Schulen ===
+  "openhpi.de",                   // Hasso-Plattner-Institut MOOCs
+  "hpi.de",
+  "iversity.org",
+  "42berlin.de",
+  "42wolfsburg.de",
+  "42heilbronn.de",
+  "neuefische.de",
+  "masterschool.com",
+  "spiced-academy.com",           // SPICED Academy
+  "code.berlin",                  // CODE University of Applied Sciences
+  "le-wagon.com",
+  "lewagon.com",
+  "careerfoundry.com",
+  "ironhack.com",
+  "techlabs.io",
+
+  // === AT / CH: Hochschulen und Business Schools ===
+  "hsg.ch",                       // Uni St. Gallen
+  "unisg.ch",
+  "eth.ch",
+  "ethz.ch",
+  "epfl.ch",
+  "uzh.ch",                       // Uni Zürich
+  "unibe.ch",                     // Uni Bern
+  "zhaw.ch",
+  "fhnw.ch",
+  "wu.ac.at",                     // Wirtschaftsuniversität Wien
+  "tuwien.ac.at",
+  "univie.ac.at",
+  "uibk.ac.at",                   // Uni Innsbruck
+  "jku.at",                       // Johannes Kepler Linz
+
+  // === International: Top-Universitäten mit Online-Angeboten ===
+  "mit.edu",                      // MIT (inkl. OCW und xPRO)
+  "ocw.mit.edu",
+  "mitxpro.mit.edu",
+  "stanford.edu",
+  "online.stanford.edu",
+  "harvard.edu",
+  "extension.harvard.edu",
+  "pll.harvard.edu",
+  "hbs.edu",                      // Harvard Business School
+  "oxford.ac.uk",
+  "ox.ac.uk",
+  "sbs.ox.ac.uk",                 // Saïd Business School
+  "cam.ac.uk",
+  "jbs.cam.ac.uk",                // Judge Business School
+  "imperial.ac.uk",
+  "ucl.ac.uk",
+  "lse.ac.uk",
+  "kcl.ac.uk",
+  "ed.ac.uk",                     // Edinburgh
+  "man.ac.uk",                    // Manchester
+  "warwick.ac.uk",
+  "berkeley.edu",
+  "extension.berkeley.edu",
+  "yale.edu",
+  "som.yale.edu",
+  "princeton.edu",
+  "cornell.edu",
+  "ecornell.com",                 // Cornell online
+  "columbia.edu",
+  "caltech.edu",
+  "cmu.edu",                      // Carnegie Mellon
+  "chicago.edu",
+  "northwestern.edu",
+  "kellogg.northwestern.edu",
+  "nyu.edu",
+  "stern.nyu.edu",
+  "upenn.edu",
+  "wharton.upenn.edu",
+  "online.wharton.upenn.edu",
+  "duke.edu",
+  "fuqua.duke.edu",
+  "umich.edu",                    // University of Michigan
+  "ross.umich.edu",
+  "utexas.edu",
+  "uchicago.edu",
+  "booth.uchicago.edu",
+  "utoronto.ca",
+  "ubc.ca",
+  "mcgill.ca",
+
+  // === International: Business Schools ===
+  "insead.edu",
+  "hec.edu",
+  "lbs.edu",                      // London Business School
+  "ie.edu",                       // IE Business School
+  "iese.edu",
+  "escp.eu",
+  "essec.edu",
+  "imd.org",                      // IMD Lausanne
+  "sdabocconi.it",                // SDA Bocconi
+  "esade.edu",
+
+  // === Internationale Lernplattformen (MOOCs, Corporate Learning) ===
   "coursera.org",
   "edx.org",
   "futurelearn.com",
   "udemy.com",
-  "linkedin.com",
+  "linkedin.com",                 // deckt learning.linkedin.com
   "skillshare.com",
   "udacity.com",
+  "pluralsight.com",
+  "datacamp.com",
+  "codecademy.com",
+  "khanacademy.org",
+  "oreilly.com",                  // O'Reilly Learning
+  "masterclass.com",
+  "domestika.org",
+  "frontendmasters.com",
+  "egghead.io",
+  "acloudguru.com",               // jetzt Pluralsight, URL existiert
+  "interaction-design.org",       // IxDF
+  "teamtreehouse.com",
+  "maven.com",                    // Maven cohort courses
+  "reforge.com",                  // Reforge (Product Management)
+  "section.com",                  // Section (Scott Galloway)
 
-  // Hersteller-Zertifizierungsprogramme
+  // === Hersteller-Zertifizierungsprogramme ===
   "hubspot.com",
+  "academy.hubspot.com",
   "learn.microsoft.com",
   "microsoft.com",
   "aws.amazon.com",
-  "trailhead.salesforce.com",
+  "aws.training",
+  "amazon.com",
   "salesforce.com",
+  "trailhead.salesforce.com",
+  "google.com",
+  "skillshop.exceedlms.com",
+  "skillshop.withgoogle.com",
+  "cloudskillsboost.google",
+  "cloud.google.com",
+  "exceedlms.com",
   "scrum.org",
+  "scrumalliance.org",
   "pmi.org",
   "axelos.com",
+  "peoplecert.org",
   "cisco.com",
   "networkingacademy.com",
   "redhat.com",
   "oracle.com",
+  "mylearn.oracle.com",
   "sap.com",
-  "google.com",
-  "skillshop.exceedlms.com",
-  "skillshop.withgoogle.com",
-  "exceedlms.com",
+  "learning.sap.com",
   "atlassian.com",
+  "university.atlassian.com",
   "meta.com",
   "facebookblueprint.com",
+  "adobe.com",
+  "learn.adobe.com",
+  "github.com",                   // GitHub Skills / GitHub Learning Lab
+  "linuxfoundation.org",
+  "training.linuxfoundation.org",
+  "docker.com",
+  "kubernetes.io",
+  "cncf.io",
+  "hashicorp.com",
+  "developer.hashicorp.com",
+  "databricks.com",
+  "academy.databricks.com",
+  "snowflake.com",
+  "university.mongodb.com",
+  "mongodb.com",
+  "elastic.co",
+  "confluent.io",
+  "kaggle.com",
+  "nvidia.com",
+  "learn.nvidia.com",
+  "isaca.org",
+  "comptia.org",
+  "iseb.org",
+  "isqi.org",
+  "ipma.ch",                      // International Project Management Association
 
-  // Behörden, Förderportale, Weiterbildungsverzeichnisse
+  // === Design / Kreativ / Produkt ===
+  "figma.com",
+  "behance.net",
+  "canva.com",
+  "invisionapp.com",
+  "miro.com",
+
+  // === Behörden, Förderportale, Weiterbildungsverzeichnisse ===
   "arbeitsagentur.de",
   "kursnet.arbeitsagentur.de",
   "bildungsurlaub.de",
@@ -157,22 +368,26 @@ const ALLOWED_DOMAIN_SUFFIXES: readonly string[] = [
   "weiterbildungsdatenbank.de",
   "wb-web.de",
   "stifterverband.org",
+  "bmwk.de",                      // Bundeswirtschaftsministerium
+  "bmbf.de",                      // Bundesbildungsministerium
 
-  // Weitere etablierte Fachanbieter und Branchen-Plattformen
+  // === Weitere etablierte Fachanbieter ===
   "oose.de",
   "sigs-datacom.de",
-  "iml.fraunhofer.de",
-  "gi.de",
   "ey.com",
   "pwc.com",
   "deloitte.com",
   "kpmg.com",
-  "bitkom.org",
-  "bitkom-akademie.de",
+  "bcg.com",
+  "mckinsey.com",
+  "accenture.com",
+  "capgemini.com",
+  "bearingpoint.com",
 
-  // Fortbildungs-Aggregatoren mit Qualitätsanspruch
+  // === Fortbildungs-Aggregatoren mit Qualitätsanspruch ===
   "fortbildung24.com",
   "semigator.de",
+  "edukatico.org",
 ];
 
 /**
